@@ -622,3 +622,4 @@ ALTER TABLE `cloud`.`guest_os` ADD COLUMN `created` datetime COMMENT 'Time when 
 ALTER TABLE `cloud`.`guest_os` ADD COLUMN `removed` datetime COMMENT 'Time when Guest OS was removed if deleted, else NULL';
 UPDATE `cloud`.`guest_os` SET `created` = now();
 ALTER TABLE `cloud`.`vpc_offerings` ADD COLUMN supports_distributed_router boolean default false;
+ALTER TABLE `cloud`.`vpc` ADD COLUMN uses_distributed_router  boolean default false;
