@@ -16,6 +16,7 @@
 // under the License.
 package com.cloud.hypervisor.xen.resource;
 
+import com.cloud.agent.api.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -88,6 +89,7 @@ import org.apache.cloudstack.storage.to.TemplateObjectTO;
 import org.apache.cloudstack.storage.to.VolumeObjectTO;
 
 import com.cloud.agent.IAgentControl;
+
 import com.cloud.agent.api.Answer;
 import com.cloud.agent.api.AttachIsoCommand;
 import com.cloud.agent.api.AttachVolumeAnswer;
@@ -509,6 +511,8 @@ public abstract class CitrixResourceBase implements ServerResource, HypervisorRe
             return execute((OvsDeleteFlowCommand)cmd);
         } else if (clazz == OvsVpcPhysicalTopologyConfigCommand.class) {
             return execute((OvsVpcPhysicalTopologyConfigCommand) cmd);
+        } else if (clazz == OvsVpcRoutingPolicyConfigCommand.class) {
+            return execute((OvsVpcRoutingPolicyConfigCommand) cmd);
         } else if (clazz == CleanupNetworkRulesCmd.class) {
             return execute((CleanupNetworkRulesCmd)cmd);
         } else if (clazz == NetworkRulesSystemVmCommand.class) {
@@ -532,7 +536,7 @@ public abstract class CitrixResourceBase implements ServerResource, HypervisorRe
         } else if (clazz == PlugNicCommand.class) {
             return execute((PlugNicCommand)cmd);
         } else if (clazz == UnPlugNicCommand.class) {
-            return execute((UnPlugNicCommand)cmd);
+            return execute((UnPlugNicCommand) cmd);
         } else if (cmd instanceof StorageSubSystemCommand) {
             return storageHandler.handleStorageCommands((StorageSubSystemCommand) cmd);
         } else if (clazz == CreateVMSnapshotCommand.class) {
@@ -5282,8 +5286,24 @@ public abstract class CitrixResourceBase implements ServerResource, HypervisorRe
         Connection conn = getConnection();
         try {
             String result = callHostPlugin(conn, "ovstunnel", "configure_ovs_bridge_for_network_topology", "bridge",
+                    cmd.getBridgeName(), "config", cmd.getVpcConfigInJson());
+            if (result.equalsIgnoreCase("SUCCESS")) {
+                return new Answer(cmd, true, result);
+            } else {
+                return new Answer(cmd, false, result);
+            }
+        } catch  (Exception e) {
+            s_logger.warn("caught exception while updating host with latest routing polcies", e);
+            return new Answer(cmd, false, e.getMessage());
+        }
+    }
+
+    public Answer execute(OvsVpcRoutingPolicyConfigCommand cmd) {
+        Connection conn = getConnection();
+        try {
+            String result = callHostPlugin(conn, "ovstunnel", "configure_ovs_bridge_for_routing_policies", "bridge",
                     cmd.getBridgeName(), "host-id", ((Long)cmd.getHostId()).toString(), "config",
-                    cmd.getjsonVpcConfig());
+                    cmd.getVpcConfigInJson());
             if (result.equalsIgnoreCase("SUCCESS")) {
                 return new Answer(cmd, true, result);
             } else {
