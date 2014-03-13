@@ -205,6 +205,7 @@ public class VpcVO implements Vpc {
     @Override
     public IAMEntityType getEntityType() {
         return IAMEntityType.Vpc;
+    }
 
     @Override
     public boolean usesDistributedRouter() {
